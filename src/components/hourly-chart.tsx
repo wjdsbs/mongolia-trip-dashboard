@@ -20,7 +20,7 @@ export function HourlyChart({
 }) {
   const [selected, setSelected] = useState<number | null>(null);
   const hours = data.hours;
-  const x = (hour: number) => 32 + (hour + 0.5) * 25;
+  const x = (hour: number) => 28 + (hour + 0.5) * 13.5;
   const y = (temp: number) =>
     162 - ((temp - domain[0]) / (domain[1] - domain[0])) * 104;
   const line = (field: "temp" | "feels") =>
@@ -30,9 +30,13 @@ export function HourlyChart({
   const active = selected === null ? null : hours[selected];
   const min = hours.reduce((a, b) => (a.temp <= b.temp ? a : b));
   const max = hours.reduce((a, b) => (a.temp >= b.temp ? a : b));
+  const labeledHours = hours.filter(
+    (hour) =>
+      hour.hour % 3 === 0 || hour.hour === min.hour || hour.hour === max.hour,
+  );
   const gustMax = Math.max(16, ...hours.map((h) => h.gust));
   const time = localTime(now).split(":").map(Number);
-  const currentX = 32 + (time[0] + time[1] / 60) * 25;
+  const currentX = 28 + (time[0] + time[1] / 60) * 13.5;
   const isToday = localDate(now) === date;
   const sunHour = (value: string) => {
     const parts = value.slice(11, 16).split(":").map(Number);
@@ -40,6 +44,8 @@ export function HourlyChart({
   };
   const sunrise = data.summary?.sunrise ? sunHour(data.summary.sunrise) : null;
   const sunset = data.summary?.sunset ? sunHour(data.summary.sunset) : null;
+  const tooltipX =
+    selected === null ? 0 : Math.max(30, Math.min(282, x(selected) - 38));
   const pick = (e: React.PointerEvent<SVGSVGElement>) => {
     const box = e.currentTarget.getBoundingClientRect();
     setSelected(
@@ -47,7 +53,7 @@ export function HourlyChart({
         0,
         Math.min(
           23,
-          Math.floor((((e.clientX - box.left) / box.width) * 640 - 32) / 25),
+          Math.floor((((e.clientX - box.left) / box.width) * 360 - 28) / 13.5),
         ),
       ),
     );
@@ -63,11 +69,11 @@ export function HourlyChart({
           <i className="dashed" />
           체감
         </span>
-        <span className="chart-hint">탭해서 시간별 보기</span>
+        <span className="chart-hint">탭·드래그해서 시간별 보기</span>
       </div>
       <svg
         className="hourly-chart"
-        viewBox="0 0 640 342"
+        viewBox="0 0 360 358"
         role="slider"
         tabIndex={0}
         aria-label="시간별 날씨. 좌우 방향키로 시간 선택"
@@ -102,23 +108,31 @@ export function HourlyChart({
           pick(e);
         }}
         onPointerMove={(e) => {
-          if (e.buttons) pick(e);
+          if (e.currentTarget.hasPointerCapture(e.pointerId)) pick(e);
+        }}
+        onPointerUp={(e) => {
+          if (e.currentTarget.hasPointerCapture(e.pointerId))
+            e.currentTarget.releasePointerCapture(e.pointerId);
+        }}
+        onPointerCancel={(e) => {
+          if (e.currentTarget.hasPointerCapture(e.pointerId))
+            e.currentTarget.releasePointerCapture(e.pointerId);
         }}
       >
         <title>24시간 날씨, 기온, 강수확률, 돌풍</title>
         {sunrise !== null && sunset !== null ? (
           <>
             <rect
-              x={32}
+              x={28}
               y={0}
-              width={sunrise * 25}
+              width={sunrise * 13.5}
               height={318}
               fill="var(--night)"
             />
             <rect
-              x={32 + sunset * 25}
+              x={28 + sunset * 13.5}
               y={0}
-              width={(24 - sunset) * 25}
+              width={(24 - sunset) * 13.5}
               height={318}
               fill="var(--night)"
             />
@@ -129,9 +143,9 @@ export function HourlyChart({
             .map((h) => (
               <rect
                 key={h.hour}
-                x={x(h.hour) - 12.5}
+                x={x(h.hour) - 6.75}
                 y={0}
-                width={25}
+                width={13.5}
                 height={318}
                 fill="var(--night)"
               />
@@ -168,8 +182,8 @@ export function HourlyChart({
           {domain[0]}
         </text>
         <line
-          x1={32}
-          x2={632}
+          x1={28}
+          x2={352}
           y1={y(0)}
           y2={y(0)}
           stroke="var(--muted)"
@@ -194,39 +208,45 @@ export function HourlyChart({
           strokeLinejoin="round"
           strokeLinecap="round"
         />
-        {[min, max]
-          .filter((h, i, a) => i === 0 || h.hour !== a[0].hour)
-          .map((h) => (
+        {labeledHours.map((h) => {
+          const isExtreme = h.hour === min.hour || h.hour === max.hour;
+          return (
             <g key={h.hour}>
-              <circle cx={x(h.hour)} cy={y(h.temp)} r={4} fill="var(--place)" />
+              <circle
+                cx={x(h.hour)}
+                cy={y(h.temp)}
+                r={isExtreme ? 4 : 2.5}
+                fill="var(--place)"
+              />
               <text
                 x={x(h.hour)}
                 y={y(h.temp) - 10}
                 textAnchor="middle"
-                className="temp-label"
+                className={`temp-label${isExtreme ? " extreme" : ""}`}
               >
                 {Math.round(h.temp)}°
               </text>
             </g>
-          ))}
-        <line x1={32} x2={632} y1={184} y2={184} stroke="var(--grid)" />
-        <text x={32} y={201} className="row-label">
+          );
+        })}
+        <line x1={28} x2={352} y1={184} y2={184} stroke="var(--grid)" />
+        <text x={28} y={201} className="row-label">
           강수확률 % · 강수량 mm
         </text>
-        <text x={631} y={201} textAnchor="end" className="axis">
+        <text x={351} y={201} textAnchor="end" className="axis">
           100%
         </text>
         {hours.map((h) => (
           <g key={h.hour}>
             <rect
-              x={x(h.hour) - 6}
+              x={x(h.hour) - 3.5}
               y={249 - (h.precipProb ?? 0) * 0.34}
-              width={12}
+              width={7}
               height={Math.max(1, (h.precipProb ?? 0) * 0.34)}
               rx={2}
               fill="var(--rain)"
             />
-            {h.precip > 0 && (
+            {h.precip > 0 && (h.hour % 3 === 0 || selected === h.hour) && (
               <text
                 x={x(h.hour)}
                 y={244 - (h.precipProb ?? 0) * 0.34}
@@ -243,19 +263,19 @@ export function HourlyChart({
             )}
           </g>
         ))}
-        <line x1={32} x2={632} y1={256} y2={256} stroke="var(--grid)" />
-        <text x={32} y={274} className="row-label">
+        <line x1={28} x2={352} y1={256} y2={256} stroke="var(--grid)" />
+        <text x={28} y={274} className="row-label">
           돌풍 m/s
         </text>
-        <text x={631} y={274} textAnchor="end" className="axis">
+        <text x={351} y={274} textAnchor="end" className="axis">
           강풍 ≥ 12
         </text>
         {hours.map((h) => (
           <rect
             key={h.hour}
-            x={x(h.hour) - 6}
+            x={x(h.hour) - 3.5}
             y={316 - (h.gust / gustMax) * 34}
-            width={12}
+            width={7}
             height={Math.max(1, (h.gust / gustMax) * 34)}
             rx={2}
             fill={h.gust >= 12 ? "var(--warning)" : "var(--wind)"}
@@ -271,21 +291,38 @@ export function HourlyChart({
               stroke="var(--text)"
               strokeDasharray="3 3"
             />
-            <text x={Math.min(610, currentX + 5)} y={49} className="row-label">
+            <text x={Math.min(326, currentX + 5)} y={49} className="row-label">
               지금
             </text>
           </g>
         )}
         {selected !== null && (
-          <line
-            x1={x(selected)}
-            x2={x(selected)}
-            y1={0}
-            y2={318}
-            stroke="var(--place)"
-            strokeWidth={2}
-          />
+          <>
+            <line
+              x1={x(selected)}
+              x2={x(selected)}
+              y1={0}
+              y2={318}
+              stroke="var(--place)"
+              strokeWidth={2}
+            />
+            {active && (
+              <g className="chart-tooltip" aria-hidden="true">
+                <rect x={tooltipX} y={42} width={76} height={37} rx={6} />
+                <text x={tooltipX + 38} y={56} textAnchor="middle">
+                  {String(active.hour).padStart(2, "0")}시 ·{" "}
+                  {Math.round(active.temp)}°
+                </text>
+                <text x={tooltipX + 38} y={70} textAnchor="middle">
+                  체감 {Math.round(active.feels)}°
+                </text>
+              </g>
+            )}
+          </>
         )}
+        <text x={190} y={355} textAnchor="middle" className="axis-title">
+          시간 (시)
+        </text>
       </svg>
       {active && (
         <div className="hour-detail" aria-live="polite">

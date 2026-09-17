@@ -1,4 +1,5 @@
-import { TIMEZONE, type PlaceKey } from "@/config/trip";
+import { TIMEZONE, type PlaceKey } from '@/config/trip';
+
 export type HourPoint = {
   hour: number;
   temp: number;
@@ -11,6 +12,7 @@ export type HourPoint = {
   wind: number;
   gust: number;
 };
+
 export type DayPlace = {
   place: PlaceKey;
   hours: HourPoint[];
@@ -35,6 +37,7 @@ export type DayPlace = {
     moonUp: boolean;
   };
 };
+
 export type WeatherResponse = {
   fetchedAt: string;
   current: Record<
@@ -43,75 +46,113 @@ export type WeatherResponse = {
   >;
   days: { date: string; places: DayPlace[] }[];
 };
+
+/* 몽골 날씨 데이터용 날짜 */
 export function localDate(date: Date = new Date()) {
-  return new Intl.DateTimeFormat("en-CA", {
+  return new Intl.DateTimeFormat('en-CA', {
     timeZone: TIMEZONE,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
   }).format(date);
 }
+
+/* 몽골 날씨 데이터용 시간 */
 export function localTime(date: Date = new Date()) {
-  return new Intl.DateTimeFormat("en-GB", {
+  return new Intl.DateTimeFormat('en-GB', {
     timeZone: TIMEZONE,
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
   }).format(date);
 }
-export function tripStatus(date: string) {
-  const diff = Math.round(
-    (Date.parse(date) - Date.parse("2026-09-23")) / 86400000,
-  );
+
+/* 사용자 기기에 설정된 현재 날짜 */
+function deviceDate(date: Date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
+
+/* 날짜 차이 계산 — 시간대/DST 영향 없이 날짜만 비교 */
+function dayDiff(from: string, to: string) {
+  const toDayNumber = (value: string) => {
+    const [year, month, day] = value.split('-').map(Number);
+    return Date.UTC(year, month - 1, day) / 86400000;
+  };
+
+  return toDayNumber(to) - toDayNumber(from);
+}
+
+/* 기기 날짜 기준 여행 상태 */
+export function tripStatus(date: string = deviceDate()) {
+  const diff = dayDiff('2026-09-23', date);
+
   return diff < 0
     ? `출발 D-${-diff}`
     : diff < 3
       ? `여행 ${diff + 1}일차`
-      : "여행 끝";
+      : '여행 끝';
 }
+
+/* 기기 날짜 기준 햇님 기원 */
+export function sunnyWishStatus(date: string = deviceDate()) {
+  const diff = dayDiff('2026-09-18', date);
+
+  return diff < 0 ? `햇님 기원 D-${-diff}` : `햇님 기원 ${diff + 1}일차`;
+}
+
 export function weatherLabel(code: number) {
-  if (code === 0) return "맑음";
-  if (code === 1) return "대체로 맑음";
-  if (code === 2) return "구름 조금";
-  if (code === 3) return "흐림";
-  if ([45, 48].includes(code)) return "안개";
-  if ([56, 57, 66, 67].includes(code)) return "어는 비";
-  if (code >= 95) return "뇌우";
-  if ([71, 73, 75, 77, 85, 86].includes(code)) return "눈";
-  if (code >= 80) return "소나기";
-  if (code >= 61) return "비";
-  if (code >= 51) return "이슬비";
-  return "정보 없음";
+  if (code === 0) return '맑음';
+  if (code === 1) return '대체로 맑음';
+  if (code === 2) return '구름 조금';
+  if (code === 3) return '흐림';
+  if ([45, 48].includes(code)) return '안개';
+  if ([56, 57, 66, 67].includes(code)) return '어는 비';
+  if (code >= 95) return '뇌우';
+  if ([71, 73, 75, 77, 85, 86].includes(code)) return '눈';
+  if (code >= 80) return '소나기';
+  if (code >= 61) return '비';
+  if (code >= 51) return '이슬비';
+  return '정보 없음';
 }
+
 export function weatherKind(code: number, isDay = true) {
-  if (code <= 1) return isDay ? "sun" : "moon";
-  if (code === 2) return "partly";
-  if (code === 3) return "cloud";
-  if ([45, 48].includes(code)) return "fog";
-  if (code >= 95) return "storm";
-  if ([71, 73, 75, 77, 85, 86].includes(code)) return "snow";
-  return "rain";
+  if (code <= 1) return isDay ? 'sun' : 'moon';
+  if (code === 2) return 'partly';
+  if (code === 3) return 'cloud';
+  if ([45, 48].includes(code)) return 'fog';
+  if (code >= 95) return 'storm';
+  if ([71, 73, 75, 77, 85, 86].includes(code)) return 'snow';
+  return 'rain';
 }
-export function warnings(s: NonNullable<DayPlace["summary"]>) {
+
+export function warnings(s: NonNullable<DayPlace['summary']>) {
   return [
     (s.precipProbMax ?? 0) >= 50 || s.precipSum >= 0.5
-      ? "비 가능성 높음"
+      ? '비 가능성 높음'
       : null,
-    s.snowSum > 0 ? "눈 예보" : null,
-    s.gustMax >= 12 ? "돌풍 강함" : null,
-    s.feelsMin <= 0 ? "체감 영하" : null,
+    s.snowSum > 0 ? '눈 예보' : null,
+    s.gustMax >= 12 ? '돌풍 강함' : null,
+    s.feelsMin <= 0 ? '체감 영하' : null,
   ].filter((x): x is string => Boolean(x));
 }
-export function starVerdict(n: NonNullable<DayPlace["night"]>) {
-  if (n.cloudAvg === null) return "구름 예보 대기";
+
+export function starVerdict(n: NonNullable<DayPlace['night']>) {
+  if (n.cloudAvg === null) return '구름 예보 대기';
+
   return n.cloudAvg >= 60 || (n.moonIllumination >= 50 && n.moonUp)
-    ? "별 보기 어려움"
-    : "별 보기 좋음";
+    ? '별 보기 어려움'
+    : '별 보기 좋음';
 }
+
 export function temperatureDomain(places: DayPlace[]): [number, number] {
   const values = places.flatMap((p) =>
     p.hours.flatMap((h) => [h.temp, h.feels]),
   );
+
   return values.length
     ? [
         Math.floor((Math.min(0, ...values) - 2) / 5) * 5,
@@ -119,19 +160,22 @@ export function temperatureDomain(places: DayPlace[]): [number, number] {
       ]
     : [-5, 20];
 }
+
 export function isWeatherResponse(v: unknown): v is WeatherResponse {
-  if (!v || typeof v !== "object") return false;
+  if (!v || typeof v !== 'object') return false;
+
   const r = v as WeatherResponse;
+
   return (
-    typeof r.fetchedAt === "string" &&
+    typeof r.fetchedAt === 'string' &&
     Number.isFinite(Date.parse(r.fetchedAt)) &&
     !!r.current &&
-    ["ub", "desert", "terelj"].every((k) => k in r.current) &&
+    ['ub', 'desert', 'terelj'].every((k) => k in r.current) &&
     Array.isArray(r.days) &&
     r.days.length === 3 &&
     r.days.every(
       (d) =>
-        typeof d.date === "string" &&
+        typeof d.date === 'string' &&
         Array.isArray(d.places) &&
         d.places.every(
           (p) =>

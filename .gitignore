@@ -4,4 +4,7 @@ node_modules/
 .env*
 !.env.example
 *.tsbuildinfo
+scripts/preview/*.png
+scripts/preview/*.html
+scripts/cache/
 docs/PRD.md

@@ -1,10 +1,10 @@
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   color-scheme: light dark;
   --bg: #f5f5f0;
   --surface: #fff;
   --text: #202e31;
-  --muted: #7a8382;
+  --muted: #606f6c;
   --line: #e3e7e3;
   --grid: #e7eae7;
   --night: #edf0f180;
@@ -17,6 +17,150 @@
   --soft: #eef1ed;
   --night-panel: #f0f2f6;
 }
+.day-map {
+  min-width: 0;
+}
+.map-stops {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 7px;
+  margin: 0 0 10px;
+  padding: 0;
+  list-style: none;
+}
+.map-link-note {
+  margin: 7px 2px 0;
+  color: var(--muted);
+  font-size: 10px;
+  text-align: right;
+}
+.map-stops li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+}
+.map-stops a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 44px;
+  color: var(--text);
+  text-decoration: none;
+}
+.map-stops a:hover,
+.map-directions:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.map-stops a > span {
+  color: var(--muted);
+}
+.stop-arrow {
+  color: var(--muted);
+}
+.route-map {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3/2;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.route-map a {
+  outline: none;
+}
+.route-map a:focus-visible .map-hit {
+  stroke: var(--text);
+  stroke-width: 2;
+  stroke-dasharray: 3 2;
+}
+.route-map a:hover .map-dot {
+  stroke: var(--text);
+  stroke-width: 2;
+}
+.map-number {
+  fill: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  dominant-baseline: middle;
+  text-anchor: middle;
+  pointer-events: none;
+}
+.map-number.cluster-number {
+  font-size: 8px;
+  fill: var(--surface);
+}
+.map-label {
+  fill: var(--text);
+  font-size: 12px;
+  paint-order: stroke;
+  stroke: var(--surface);
+  stroke-width: 4;
+  stroke-linejoin: round;
+}
+.map-inset {
+  fill: var(--surface);
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.map-inset-title {
+  font-size: 11px;
+  fill: var(--muted);
+}
+.map-connector {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+}
+.map-scale {
+  color: var(--muted);
+}
+.map-scale text,
+.map-north text {
+  font-size: 9px;
+  fill: var(--muted);
+}
+.map-north path {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1.2;
+}
+.map-caption {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2px 10px;
+  font-size: 10px;
+  color: var(--muted);
+}
+.map-caption p {
+  margin: 10px 0 0;
+}
+.map-caption p span {
+  display: block;
+  margin-top: 3px;
+  font-size: 9px;
+}
+.map-directions {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--text);
+  text-decoration: none;
+}
+.map-credit {
+  margin: 0;
+  color: var(--muted);
+  font-size: 8px;
+}
+.day-map + .place-card {
+  margin-top: 0;
+}
 * {
   box-sizing: border-box;
 }
@@ -24,7 +168,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: "IBM Plex Sans KR", Arial, sans-serif;
+  font-family: 'IBM Plex Sans KR', Arial, sans-serif;
   font-size: 14px;
   -webkit-font-smoothing: antialiased;
 }
@@ -41,8 +185,7 @@ button:disabled {
   cursor: wait;
 }
 button:focus-visible,
-a:focus-visible,
-svg:focus-visible {
+a:focus-visible {
   outline: 2px solid var(--green);
   outline-offset: 4px;
 }
@@ -88,6 +231,12 @@ header {
   font-size: 12px;
   color: var(--muted);
   margin: 0 0 5px;
+}
+.wish-day {
+  margin: 2px 0 0;
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 600;
 }
 h1 {
   font-size: 34px;
@@ -237,7 +386,7 @@ h1 {
   padding: 11px 5px;
   color: var(--muted);
 }
-.date-tabs button[aria-selected="true"] {
+.date-tabs button[aria-selected='true'] {
   background: var(--surface);
   color: var(--text);
   box-shadow: 0 2px 5px #202e310a;
@@ -272,6 +421,33 @@ h1 {
 .day-panel {
   display: grid;
   gap: 20px;
+}
+.forecast-controls {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--bg);
+  padding: 5px 0 8px;
+}
+.view-tabs {
+  display: flex;
+  gap: 20px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 8px;
+}
+.view-tabs button {
+  min-height: 44px;
+  padding: 8px 4px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+}
+.view-tabs button[aria-pressed='true'] {
+  color: var(--text);
+  border-bottom-color: var(--green);
+  font-weight: 600;
 }
 .place-card {
   background: var(--surface);
@@ -444,22 +620,46 @@ h1 {
   display: block;
   touch-action: pan-y;
   overflow: visible;
+  outline: none;
+  border-radius: 8px;
+}
+.hourly-chart:focus-visible {
+  outline: 2px solid var(--place);
+  outline-offset: 2px;
 }
 .axis {
   fill: var(--muted);
-  font-size: 12px;
+  font-size: 14px;
 }
 .row-label {
   fill: var(--muted);
-  font-size: 12px;
+  font-size: 13px;
 }
 .temp-label {
   fill: var(--place);
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 500;
   paint-order: stroke;
   stroke: var(--surface);
   stroke-width: 3px;
+}
+.temp-label.extreme {
+  font-size: 14px;
+  font-weight: 700;
+}
+.axis-title {
+  fill: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+.chart-tooltip rect {
+  fill: var(--text);
+  opacity: 0.92;
+}
+.chart-tooltip text {
+  fill: var(--surface);
+  font-size: 11px;
+  font-weight: 600;
 }
 .mm-label {
   fill: var(--blue);
@@ -622,6 +822,11 @@ footer a {
     font-size: 8px;
   }
 }
+@media (hover: none) and (pointer: coarse) {
+  .hourly-chart:focus-visible {
+    outline: none;
+  }
+}
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #161d1e;
@@ -649,5 +854,167 @@ footer a {
   }
   .temp-label {
     stroke: var(--surface);
+  }
+}
+
+/* Keep the forecast readable at phone widths without horizontal scrolling. */
+.hourly-chart {
+  max-width: 420px;
+  height: auto;
+  margin-inline: auto;
+}
+.chart-legend {
+  font-size: 12px;
+  gap: 12px;
+}
+.chart-hint {
+  font-size: 11px;
+}
+.night-summary {
+  margin: 16px 0 0;
+}
+.night-title,
+.night-values {
+  font-size: 12px;
+}
+.star-verdict,
+.night-values small {
+  font-size: 11px;
+}
+.hour-detail {
+  font-size: 14px;
+  padding: 14px;
+}
+.hour-detail > div {
+  font-size: 13px;
+  gap: 12px;
+}
+.hour-detail > button {
+  min-width: 44px;
+  min-height: 44px;
+}
+.summary-stats {
+  font-size: 13px;
+}
+.sun-times {
+  font-size: 12px;
+}
+.sun-times .warning {
+  font-size: 11px;
+}
+.refresh {
+  min-height: 44px;
+  font-size: 12px;
+}
+@media (max-width: 480px) {
+  main {
+    padding: 12px 12px 20px;
+  }
+  header {
+    padding-bottom: 10px;
+  }
+  .eyebrow {
+    display: none;
+  }
+  .title-row {
+    margin-top: 0;
+  }
+  h1 {
+    font-size: 25px;
+  }
+  .kicker {
+    font-size: 11px;
+    margin-bottom: 2px;
+  }
+  .header-bottom {
+    margin-top: 3px;
+    font-size: 12px;
+  }
+  .current-section {
+    padding-top: 10px;
+  }
+  .current-grid {
+    margin: 10px 0 12px;
+  }
+  .current-temp {
+    margin: 1px 0;
+  }
+  .current-temp strong {
+    font-size: 29px;
+  }
+  .current-desc {
+    font-size: 12px;
+  }
+  .section-caption {
+    font-size: 10px;
+    gap: 6px;
+  }
+  .date-tabs {
+    padding: 3px;
+  }
+  .date-tabs button {
+    padding: 7px 4px;
+    min-height: 48px;
+  }
+  .date-tabs button > span {
+    font-size: 10px;
+    margin-bottom: 0;
+  }
+  .route-caption {
+    margin: 8px 2px 10px;
+    font-size: 12px;
+  }
+  .route-caption > span {
+    font-size: 10px;
+  }
+  .place-card {
+    padding: 16px 12px 12px;
+    border-radius: 12px;
+  }
+  .place-heading p {
+    font-size: 11px;
+    line-height: 1.5;
+  }
+  .place-title h2 {
+    font-size: 21px;
+  }
+  .stay {
+    font-size: 11px;
+  }
+  .summary {
+    margin: 12px 0 10px;
+  }
+  .range {
+    font-size: 31px;
+  }
+  .range small {
+    font-size: 11px;
+  }
+  .summary-stats {
+    font-size: 13px;
+    gap: 8px;
+  }
+  .sun-times {
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .chart-wrap {
+    padding-top: 10px;
+  }
+  .chart-legend {
+    gap: 10px;
+    padding-bottom: 6px;
+  }
+  .chart-hint {
+    font-size: 11px;
+  }
+  .night-summary {
+    padding: 12px;
+  }
+  .night-title {
+    flex-wrap: wrap;
+  }
+  .hour-detail > div {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
