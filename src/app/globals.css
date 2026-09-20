@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap");
 :root {
   color-scheme: light dark;
   --bg: #f5f5f0;
@@ -168,7 +168,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: 'IBM Plex Sans KR', Arial, sans-serif;
+  font-family: "IBM Plex Sans KR", Arial, sans-serif;
   font-size: 14px;
   -webkit-font-smoothing: antialiased;
 }
@@ -386,7 +386,7 @@ h1 {
   padding: 11px 5px;
   color: var(--muted);
 }
-.date-tabs button[aria-selected='true'] {
+.date-tabs button[aria-selected="true"] {
   background: var(--surface);
   color: var(--text);
   box-shadow: 0 2px 5px #202e310a;
@@ -444,7 +444,7 @@ h1 {
   color: var(--muted);
   font-size: 14px;
 }
-.view-tabs button[aria-pressed='true'] {
+.view-tabs button[aria-pressed="true"] {
   color: var(--text);
   border-bottom-color: var(--green);
   font-weight: 600;
@@ -1016,5 +1016,195 @@ footer a {
   }
   .hour-detail > div {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+[hidden] {
+  display: none !important;
+}
+.map-toolbar,
+.currency-directions,
+.currency-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+.map-toolbar button,
+.currency-directions button,
+.currency-presets button {
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--text);
+  min-height: 44px;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.map-toolbar button[aria-pressed="true"],
+.currency-directions button[aria-pressed="true"] {
+  background: var(--text);
+  color: var(--surface);
+}
+.geographic-map {
+  background: #edece2;
+}
+.geo-label {
+  fill: #203e34;
+  stroke: white;
+  stroke-width: 3px;
+  paint-order: stroke;
+  font-size: 10px;
+  font-weight: 600;
+  pointer-events: none;
+}
+.geo-marker {
+  cursor: pointer;
+  outline: none;
+}
+.geo-marker:focus-visible .map-hit {
+  stroke: #203e34;
+  stroke-width: 2;
+}
+.itinerary-stops {
+  padding: 0;
+  margin: 16px 0;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.itinerary-stops li {
+  display: flex;
+  align-items: center;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.itinerary-stops li:last-child {
+  border-bottom: 0;
+}
+.itinerary-stops li.selected {
+  background: var(--soft);
+}
+.itinerary-stops button {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  text-align: left;
+  background: none;
+  border: 0;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+.stop-number {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: white;
+  background: #b45328;
+  font-size: 12px;
+}
+.itinerary-stops strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+}
+.itinerary-stops small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 3px;
+}
+.itinerary-stops a {
+  padding: 14px 12px;
+  min-height: 44px;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.currency-card {
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+.currency-card h2 {
+  margin: 4px 0 10px;
+  font-size: 26px;
+}
+.currency-note {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.8;
+}
+.currency-card label {
+  display: block;
+  font-size: 13px;
+  margin-top: 22px;
+  margin-bottom: 8px;
+}
+.currency-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+}
+.currency-input:focus-within {
+  outline: 2px solid var(--green);
+}
+.currency-input input {
+  width: 100%;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  font: inherit;
+  font-size: 24px;
+  color: var(--text);
+}
+.currency-input span {
+  color: var(--muted);
+  white-space: nowrap;
+}
+.currency-directions {
+  margin-top: 24px;
+}
+.currency-presets {
+  margin-top: 10px;
+}
+.currency-result {
+  display: block;
+  border-radius: 12px;
+  background: var(--soft);
+  padding: 24px 14px;
+  margin-top: 22px;
+  text-align: right;
+  font-size: 34px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.currency-result small {
+  font-size: 15px;
+  font-weight: 400;
+}
+.view-tabs {
+  flex-wrap: wrap;
+}
+@media (max-width: 480px) {
+  .currency-card {
+    padding: 18px 14px;
+  }
+  .view-tabs button {
+    padding-inline: 10px;
   }
 }

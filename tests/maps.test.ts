@@ -4,7 +4,9 @@ import { readFileSync } from "node:fs";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import maps from "../src/generated/day-maps.json";
-import { DayMap } from "../src/components/day-map";
+import { DayMap, mapPoint } from "../src/components/day-map";
+import basemaps from "../src/generated/basemaps.json";
+import routes from "../src/generated/map-routes.json";
 import { DAY_STOPS, POIS, poiUrl, directionsUrl } from "../src/config/pois";
 import { PLACES } from "../src/config/trip";
 import {
@@ -32,6 +34,7 @@ test("신공항 및 확정 캠프 좌표, 경유지 순서가 링크에 반영�
     assert.ok(stops.length - 2 <= 3);
   }
   const expectedLinks = {
+    elsen: "https://www.google.com/maps/search/?api=1&query=47.3321,103.6831",
     airport: "https://maps.app.goo.gl/aHkh83MvZzo2VRQPA",
     bichigt: "https://maps.app.goo.gl/trwb31zEEujFYrab7",
     turtle: "https://maps.app.goo.gl/5EtCEa2FAGhKrz267",
@@ -44,7 +47,11 @@ test("신공항 및 확정 캠프 좌표, 경유지 순서가 링크에 반영�
   for (const poi of Object.values(POIS)) {
     assert.equal(poiUrl(poi.id), expectedLinks[poi.id]);
     assert.equal(poiUrl(poi.id), poi.googleUrl);
-    assert.equal(new URL(poiUrl(poi.id)).hostname, "maps.app.goo.gl");
+    assert.ok(
+      ["maps.app.goo.gl", "www.google.com"].includes(
+        new URL(poiUrl(poi.id)).hostname,
+      ),
+    );
   }
 });
 test("날짜별 방문점은 빠짐없이 한 번씩, 확대 박스는 올바른 날짜에 생성", () => {
@@ -79,19 +86,47 @@ test("지도는 서버 렌더에서 즉시 표시되고 SVG 링크 Tab 순서와
     assert.ok(html.includes('viewBox="0 0 360 240"'));
     assert.ok(!/<(?:iframe|img|script)\b/.test(html));
     const svg = html.slice(html.indexOf("<svg"), html.indexOf("</svg>"));
-    const orders = [...svg.matchAll(/aria-label="(\d)번/g)].map((m) =>
-      Number(m[1]),
-    );
-    assert.deepEqual(
-      orders,
-      DAY_STOPS[map.date].map((_, i) => i + 1),
-    );
+    assert.ok(svg.includes('<image href="/maps/'));
+    for (const id of DAY_STOPS[map.date])
+      assert.ok(html.includes(`${POIS[id].name} Google 지도 열기`));
     for (const link of svg.matchAll(/<a\s([^>]+)>/g)) {
       assert.ok(link[1].includes('target="_blank"'));
       assert.ok(link[1].includes('rel="noopener noreferrer"'));
     }
     assert.ok(svg.includes('r="25"'));
     assert.ok((50 * (360 - 32 - 2)) / 360 >= 44);
+  }
+});
+test("저장 지도는 소용량이고 방문 좌표가 해당 확대 영역 안에 들어간다", () => {
+  const views = {
+    overview: Object.keys(POIS),
+    desert: ["elsen", "bichigt"],
+    terelj: ["grace", "turtle", "aryapala", "statue"],
+    city: ["square", "dept"],
+    lastday: DAY_STOPS["2026-09-25"],
+  };
+  for (const [view, ids] of Object.entries(views)) {
+    assert.ok(readFileSync(`public/maps/${view}.webp`).byteLength < 60 * 1024);
+    for (const id of ids) {
+      const poi = POIS[id as keyof typeof POIS];
+      const [x, y] = mapPoint(
+        poi.lon,
+        poi.lat,
+        basemaps[view as keyof typeof basemaps].bounds,
+      );
+      assert.ok(x > 0 && x < 360 && y > 0 && y < 240, `${view}: ${id}`);
+    }
+  }
+  assert.ok(
+    readFileSync("src/generated/map-routes.json").byteLength < 20 * 1024,
+  );
+  assert.deepEqual(DAY_STOPS["2026-09-23"], ["airport", "elsen", "bichigt"]);
+  for (const [date, legs] of Object.entries(routes)) {
+    assert.equal(legs.length, DAY_STOPS[date].length - 1);
+    legs.forEach((leg, i) => {
+      assert.equal(leg.from, DAY_STOPS[date][i]);
+      assert.equal(leg.to, DAY_STOPS[date][i + 1]);
+    });
   }
 });
 test("위도 보정 투영·단순화·축척은 지리 비율과 경로 끝점을 보존", () => {

@@ -5,7 +5,14 @@ import { createElement } from "react";
 import { DAY_STOPS, POIS, type PoiId } from "../src/config/pois";
 import { MAP_LAYOUT, type MapRect } from "../src/config/map-layout";
 import type { DayMapData, MapLayer, MapPoint } from "../src/lib/map-types";
-import { projection, pathData, round, scaleBar, type XY } from "./map-geometry";
+import {
+  projection,
+  pathData,
+  round,
+  scaleBar,
+  simplify,
+  type XY,
+} from "./map-geometry";
 type Route = {
   code: string;
   routes?: { geometry: { coordinates: XY[] }; distance: number }[];
@@ -155,6 +162,10 @@ async function main() {
   await mkdir(previewDir, { recursive: true });
   await mkdir(resolve(root, "src/generated"), { recursive: true });
   const maps: DayMapData[] = [];
+  const geographic: Record<
+    string,
+    { from: PoiId; to: PoiId; coords: XY[]; dashed: boolean }[]
+  > = {};
   for (const [date, stops] of Object.entries(DAY_STOPS)) {
     const config = MAP_LAYOUT[date];
     const legs: Leg[] = [];
@@ -166,6 +177,15 @@ async function main() {
       );
       legs.push({ from, to, coords: straight ? null : await route(from, to) });
     }
+    geographic[date] = legs.map((leg) => ({
+      from: leg.from,
+      to: leg.to,
+      dashed: !leg.coords,
+      coords: simplify(
+        leg.coords ?? [coord(leg.from), coord(leg.to)],
+        0.0005,
+      ).map(([x, y]) => [Number(x.toFixed(5)), Number(y.toFixed(5))] as XY),
+    }));
     const main = layer(stops, stops, legs, config.mainBounds, date, true);
     const insets = (config.clusters ?? []).map((cluster) => {
       const { w, h, corner } = cluster.inset;
@@ -201,6 +221,10 @@ async function main() {
   if (Buffer.byteLength(json) > 12288)
     throw new Error(`Map data exceeds 12KB: ${Buffer.byteLength(json)}`);
   await writeFile(resolve(root, "src/generated/day-maps.json"), json + "\n");
+  await writeFile(
+    resolve(root, "src/generated/map-routes.json"),
+    JSON.stringify(geographic),
+  );
   // Render the real component, so preview labels, links, and CSS match the app.
   const { DayMap } = await import("../src/components/day-map");
   const css = await readFile(resolve(root, "src/app/globals.css"), "utf8");
