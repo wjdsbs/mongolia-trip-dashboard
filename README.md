@@ -1,4 +1,4 @@
-# 몽골, 우리의 3일
+# 부엉부엉🦉몽골여행
 
 2026년 9월 23–25일 몽골 여행용 모바일 날씨 웹입니다. Next.js App Router, React, TypeScript, SVG 차트, SunCalc를 사용합니다.
 
